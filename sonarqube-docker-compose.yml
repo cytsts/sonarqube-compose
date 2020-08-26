@@ -1,0 +1,62 @@
+version: "3"
+services:
+  sonarqube:
+    image: sonarqube:8.4.1-community
+    container_name: sonarqube
+    hostname: sonarqube
+    depends_on:
+      - sonarqube_db
+    expose:
+      - 9000
+    user: "999"
+    ports:
+      - "9100:9000"
+    networks:
+      - sonarnet
+    environment:
+      - SONARQUBE_JDBC_URL=jdbc:postgresql://sonarqube_db:5432/sonar
+      - SONARQUBE_JDBC_USERNAME=sonar
+      - SONARQUBE_JDBC_PASSWORD=sonar
+      - sonar.search.javaAdditionalOpts=-Dbootstrap.system_call_filter=false -Dsonar.ce.javaOpts=-Xmx1192m -Dsonar.web.javaOpts=-Xmx1192m
+    volumes:
+      - sonarqube_conf:/opt/sonarqube/conf
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_bundled-plugins:/opt/sonarqube/lib/bundled-plugins
+
+  sonarqube_db:
+    image: postgres:12-alpine
+    container_name: sonarqube-pg
+    hostname: sonarqube-pg
+    networks:
+      - sonarnet
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar
+    volumes:
+      - postgresql:/var/lib/postgresql
+      - postgresql_data:/var/lib/postgresql/data
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+networks:
+  sonarnet: 
+
+
+volumes:
+  sonarqube_logs:
+  sonarqube_data:
+  sonarqube_conf:
+  sonarqube_extensions:
+  sonarqube_bundled-plugins:
+  postgresql:
+  postgresql_data:
+
+    
+    
+#docker volume prune
+#docker-compose -f "sonarqube-docker-compose.yml" up -d --build    
+#docker-compose -f "sonarqube-docker-compose.yml" down
